@@ -5,6 +5,7 @@ import cors from 'cors';
 import multer from 'multer';
 import { S3Client, PutObjectCommand, DeleteObjectCommand } from '@aws-sdk/client-s3';
 import { createClient } from '@supabase/supabase-js';
+import WebSocket from 'ws';
 
 const required = ['SUPABASE_URL', 'SUPABASE_SERVICE_ROLE_KEY', 'R2_ACCOUNT_ID', 'R2_ACCESS_KEY_ID', 'R2_SECRET_ACCESS_KEY', 'R2_BUCKET', 'R2_PUBLIC_URL'];
 const missing = required.filter((key) => !process.env[key]);
@@ -13,7 +14,10 @@ if (missing.length) throw new Error(`Missing required environment variables: ${m
 const app = express();
 const port = Number(process.env.PORT || 3000);
 const allowedOrigins = (process.env.CORS_ORIGINS || 'https://social-app-inky-one.vercel.app').split(',').map((value) => value.trim()).filter(Boolean);
-const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY, { auth: { persistSession: false } });
+const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY, {
+  auth: { persistSession: false },
+  realtime: { transport: WebSocket }
+});
 const r2 = new S3Client({
   region: 'auto',
   endpoint: `https://${process.env.R2_ACCOUNT_ID}.r2.cloudflarestorage.com`,
