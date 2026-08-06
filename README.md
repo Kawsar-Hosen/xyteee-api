@@ -1,32 +1,24 @@
-# XYTEEE API
+# XYTEEE Platform API
 
-Railway-ready Node.js API for authenticated Cloudflare R2 media uploads.
+Railway backend for the XYTEEE mobile-first community platform.
 
-## Deployment
+## Services
 
-Railway detects `railway.json` and runs `npm start`. It supplies `PORT` automatically. After deployment, generate a public domain and verify `GET /health`.
+- **Railway**: email/password authentication, Google OAuth, SMTP email verification, JWT sessions, live Socket.IO events, and media API
+- **Supabase Postgres**: application database only
+- **Cloudflare R2**: profile and community media
+- **Vercel**: web frontend
 
-## Variables and security
+## Railway variables
 
-Add all values from `.env.example` in the Railway service **Variables** panel.
+Keep `DATABASE_URL`, `AUTH_JWT_SECRET`, SMTP credentials, Google OAuth credentials, and R2 credentials in Railway Variables. Do not place server secrets in Vercel.
 
-- Keep Supabase service-role/database credentials, R2 credentials, SMTP credentials, Google OAuth secrets, and `AUTH_JWT_SECRET` in Railway only.
-- Vercel should hold only `NEXT_PUBLIC_API_URL` and public browser configuration such as `NEXT_PUBLIC_SUPABASE_URL` and its publishable key.
-- Set `CORS_ORIGINS` to the production XYTEEE frontend URL. Add preview domains only when they need API access.
+## Endpoints
 
-## Current media API
+- `GET /health`
+- `POST /v1/auth/register`, `POST /v1/auth/login`, `POST /v1/auth/verify`
+- `GET /v1/auth/google`
+- `GET /v1/posts`, `POST /v1/posts`
+- `POST /v1/media`
 
-Every media request requires a signed-in Supabase access token:
-
-```
-Authorization: Bearer <supabase-access-token>
-```
-
-- `POST /v1/media` — multipart form upload, `file` field; accepts images, MP4/WebM video, and MP3/M4A/WAV audio up to 25 MB.
-- `DELETE /v1/media/<object-key>` — deletes only an object owned by the authenticated user.
-
-The upload response contains an immutable R2 URL. Store that URL or its key with the associated post/profile record.
-
-## Railway-owned authentication migration
-
-The existing deployed XYTEEE frontend still uses Supabase Auth. Replacing it with Railway-owned email/password, SMTP verification, Google OAuth, and Railway JWT sessions requires a coordinated database-schema and frontend migration. Do not remove Supabase Auth from the active app until that migration is deployed together.
+The API emits authenticated Socket.IO `social:update` events for live community actions.
